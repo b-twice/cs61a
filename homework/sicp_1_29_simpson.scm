@@ -11,9 +11,10 @@
     (* (sum f (+ a (/ dx 2.0)) add-dx b) 
         dx))
 
-; Where I struggled is that a is constant
-; and you are just incrementing by 1
-; then applying the formula of yk = f(a + kh)
+; Where I struggled was the ability to interpret
+; and translate the formula into code instead of 
+; being able to apply higher-order functions or use lexical scoping
+; This is a good thing, need to read and apply more formulas
 (define (integral2 f a b n)
     (define h (/ (- b a) n))
     (define (inc x) (+ x 1))  
