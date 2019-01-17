@@ -53,4 +53,17 @@
     (define (inc a) (+ a 1))
     (accumulate combiner fast-prime? 0 square a inc b))
 
-(prime-sum 2 10)
+(define (gcd a b)
+   (if (= b 0)
+       a
+       (gcd b (remainder a b))))
+
+(define (prime-product n)
+   (define (coprime? a)
+      (= (gcd a n) 1))
+   (define (identity x) x)
+   (define (combiner a b) (* a b))
+   (define (inc a) (+ a 1))
+   (accumulate combiner coprime? 1 identity 1 inc n))
+
+(prime-product 10)
