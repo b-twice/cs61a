@@ -34,8 +34,8 @@
 
 (define (make-ordered-deck)
   (define (make-suit s)
-    (every (lambda (rank) (word rank s)) '(A 2 3 4 5 6 7 8 9 10 J Q K)) )
-  (se (make-suit 'H) (make-suit 'S) (make-suit 'D) (make-suit 'C)) )
+    (every (lambda (rank) (word rank s)) '(A 2 3 4 5 6 7 8 9 10 J Q K )) )
+  (se (make-suit 'H) (make-suit 'S) (make-suit 'D) (make-suit 'C) 'XR 'XR) )
 
 (define (make-deck)
   (define (shuffle deck size)
@@ -46,7 +46,7 @@
     (if (= size 0)
 	deck
     	(move-card deck '() (random size)) ))
-  (shuffle (make-ordered-deck) 52) )
+  (shuffle (make-ordered-deck) 54) )
 
 ; STEP 1
 ; ; 1. Create a best-total proc that takes a 
@@ -56,8 +56,10 @@
 (define (score-card card) 
     (let ((face (first card)))
         (cond ((equal? face 'a) '11)
+        ((equal? face 'x) '11)
         ((equal? face 'k) '10)
         ((equal? face 'q) '10)
+        ((equal? face 'j) '10)
         ((equal? face 'j) '10)
         (else (bl card)))
     ))
@@ -83,11 +85,19 @@
     (+ (count-card-by-suit (first hand)) (count-cards-by-suit (bf hand) suit-type))))
 
 
+(define (subtract-joker score total) 
+  (define (iter score total counter) (
+    (if (= counter 1) score
+    (iter score total (- counter 1)
+  ))
+  (iter score total 10))
+
 ; rescore hand by dropping aces till no aces left
-(define (rescore-hand hand score aces total) 
+(define (rescore-hand hand score aces jokers total) 
     (cond ((<= score total) score)
-          ((= aces 0) score)
-          (else (rescore-hand hand (- score 10) (- aces 1) total))))
+          ((> aces 0) (rescore-hand hand (- score 10) (- aces 1) jokers total))
+          ((> jokers 0) (rescore-hand hand (- total score) aces (- jokers 1) total))
+          (else score)))
       
 
 ; get the total of a hand
@@ -98,9 +108,9 @@
     (count (score-cards hand)))
 
 (define (best-total hand)
-  (rescore-hand hand (sum-hand hand) (count-card-types hand 'a) 21))
+  (rescore-hand hand (sum-hand hand) (count-card-types hand 'a) (count-card-types hand 'x) 21))
 
-; (display (best-total '(ad 8s)))    ; in this hand the ace counts as 11
+; (display (best-total '(ad xr)))    ; in this hand the ace counts as 11
 ; (newline)
 ; ;19
 ; (display (best-total '(ad 8s 5h))) ; here it must count as 1 to avoid busting
@@ -131,26 +141,26 @@
 
 ; STEP 4 - New strategy dealaer sensitive
 
-(define (high-sensitive? customer-score dealer-card)
-  (cond ((>= customer-score 17) #f)
-        ((< dealer-card 7) #f)
-        (else #t)))
+; (define (high-sensitive? customer-score dealer-card)
+;   (cond ((>= customer-score 17) #f)
+;         ((< dealer-card 7) #f)
+;         (else #t)))
 
-(define (low-sensitive? customer-score dealer-card)
-  (cond ((>= customer-score 12) #f)
-        ((> dealer-card 6) #f)
-        (else #t)))
+; (define (low-sensitive? customer-score dealer-card)
+;   (cond ((>= customer-score 12) #f)
+;         ((> dealer-card 6) #f)
+;         (else #t)))
 
 
-(define (dealer-sensitive current-hand dealer-card)
-  ; dealer has ace, 7, 8, 9, 10, picture and custom less than 17
-  ; OR dealer has 2, 3, 4, 5, 6 and custom less thatn 12
+; (define (dealer-sensitive current-hand dealer-card)
+;   ; dealer has ace, 7, 8, 9, 10, picture and custom less than 17
+;   ; OR dealer has 2, 3, 4, 5, 6 and custom less thatn 12
 
-  (let ((total (sum-hand current-hand))
-        (dealer-total (score-card dealer-card)))
-  (cond ((high-sensitive? total dealer-total) #t)
-        ((low-sensitive? total dealer-total) #t)
-    (else #f))))
+;   (let ((total (sum-hand current-hand))
+;         (dealer-total (score-card dealer-card)))
+;   (cond ((high-sensitive? total dealer-total) #t)
+;         ((low-sensitive? total dealer-total) #t)
+;     (else #f))))
 
 ; (trace play-n)
 ; (play-n dealer-sensitive 5)
@@ -159,13 +169,18 @@
 ; STEP 5 - Generalize part 2 defining a function stop-at
 
 (define (stop-at n)
-    (define (strategy current-hand dealer-hand) 
-      (let ((score (rescore-hand current-hand (sum-hand current-hand) (count-card-types current-hand 'a) 17)))
+    (define (strategy hand dealer-hand) 
+      (let ((score (rescore-hand hand (sum-hand hand) (count-card-types hand 'a) (count-card-types hand 'x) n)))
+        (newline)
+        (display score)
+        (newline)
+        (display n)
         (if (>= score n) #f #t)))
   strategy)
 
 (trace play-n)
-(play-n (stop-at 17) 5)
+; (play-n (stop-at 17) 5)
+(display ((stop-at 17) '(10d 10d 10d xr) '8d))
 
 
 ; STEP 6 - Valentine strategy, stop at 17 unless heart stop at 19
