@@ -48,52 +48,63 @@
 ;     	(move-card deck '() (random size)) ))
 ;   (shuffle (make-ordered-deck) 52) )
 
+; STEP 1
 ; ; 1. Create a best-total proc that takes a 
 ; ; hand (se of cards) and returns the total points in the hand
 ; ; Should return the best total without busting (ace is 1 or 11)
 
-(define (card-points card) 
-    (let ((face (first card)))
-        (cond ((equal? face 'a) '11)
-        ((equal? face 'k) '10)
-        ((equal? face 'q) '10)
-        ((equal? face 'j) '10)
-        (else face))
-    ))
-
-; find number of aces
-(define (count-aces card-points) 
-  ())
-
 ; convert each cards to a number, assuming ace high
+; returns a setence e.g. (ad, 8c) => 11, 8
 (define (score-cards cards) 
+  (define (card-points card) 
+      (let ((face (first card)))
+          (cond ((equal? face 'a) '11)
+          ((equal? face 'k) '10)
+          ((equal? face 'q) '10)
+          ((equal? face 'j) '10)
+          (else face))
+      ))
     (if (empty? cards) '()
     (se (card-points (first cards)) (score-cards (bf cards)))))
+  
+; find number of aces in a hand
+(define (count-aces hand) 
+  (define (count-ace card) 
+    (if (equal? (first card) 'a) 1 0))
+  (if (empty? hand) 0
+    (+ (count-ace (first hand)) (count-aces (bf hand)))))
 
-  ; (define (rescore-hand hand) 
-  ;   (let ((score (score-hand hand)))
-  ;     (if (<= (score 21)) score
-  ;       ; score with less high aces
-  ;       ())))
+; rescore hand by dropping aces till no aces left
+(define (rescore-hand hand score aces) 
+    (cond ((<= score 21) score)
+          ((= aces 0) score)
+          (else (rescore-hand hand (- score 10) (- aces 1)))))
+      
 
 ; get the total of a hand
-(define (score-hand hand)
+(define (sum-hand hand)
     (define (count scored-cards)
       (if (empty? scored-cards) 0
       (+ (first scored-cards) (count (bf scored-cards)))))
     (count (score-cards hand)))
 
 (define (best-total hand)
-  (score-hand hand))
+  (rescore-hand hand (sum-hand hand) (count-aces hand)))
 
 (display (best-total '(ad 8s)))    ; in this hand the ace counts as 11
+(newline)
 ;19
 (display (best-total '(ad 8s 5h))) ; here it must count as 1 to avoid busting
 ;14
-;(best-total '(ad as 9h)) ; here one counts as 11 and the other as 1
+(newline)
+(display (best-total '(ad as 9h))) ; here one counts as 11 and the other as 1
 
 
 
+; STEP 2 - Write stop-at-17, take a card if total < 17
+
+(define (stop-at-17 hand)
+  (if (>= (sum-hand hand) 17) 
 
 
 
