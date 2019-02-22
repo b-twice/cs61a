@@ -49,3 +49,16 @@
 )
 
 ;3 cards
+
+(define-class (deck cards)
+    (method (empty?) (if (eq? (count cards) 0) #t #f))
+    (method (deal) (if (ask self 'empty?) '() (first cards)))
+)
+
+;4 manners
+
+(define-class (miss-manners obj) 
+    (method (please msg args) (ask obj msg args)))
+
+
+;extra
