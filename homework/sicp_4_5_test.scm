@@ -45,8 +45,7 @@
             ; need to update the make-if
             (if ('eq '=> (cadr (cond-actions-=> first)))
                 (make-if (cond-predicate first)
-                        (cons (cadr (cons-actions-first) (cond-predicate-first))
-                        
+                        (cons (cadr (cons-actions first) (cond-predicate first))
                         (expand-clauses rest))))))
             (make-if (cond-predicate first)
                      (sequence->exp (cond-actions first))
